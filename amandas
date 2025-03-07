@@ -4,6 +4,7 @@ from rclpy.node import Node
 from std_srvs.srv import Trigger
 from std_msgs.msg import String
 
+hejhej
 
 class StateManager(Node):
     """ 
