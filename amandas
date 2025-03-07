@@ -6,6 +6,8 @@ from std_msgs.msg import String
 
 hejhej
 
+hejdå
+
 class StateManager(Node):
     """ 
     Node 2: Manages system state.
