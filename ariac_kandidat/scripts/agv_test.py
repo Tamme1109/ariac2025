@@ -5,7 +5,7 @@ import threading
 from rclpy.executors import MultiThreadedExecutor
 from ariac_kandidat.competition_interface import CompetitionInterface
 from ariac_msgs.msg import CompetitionState
-from ariac_kandidat.agv_controller import AGVController
+from ariac_kandidat.agv_node import AGVController
 
 
 def main(args=None):
@@ -37,6 +37,7 @@ def main(args=None):
             break
 
     interface.end_competition()
+    
     spin_thread.join()
 
 if __name__ == '__main__':
