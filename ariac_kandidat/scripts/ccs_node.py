@@ -5,6 +5,7 @@ from rclpy.node import Node
 from ariac_msgs.msg import Order
 
 class CCSNode(Node):
+    order_list: List()
     def __init__(self):
         super().__init__('ccs_node')
 
@@ -15,9 +16,13 @@ class CCSNode(Node):
             10  # 10 is the queue size
         )
 
-    def orders_heard(self, msg):
-        self.get_logger().info(f"Received Order ID: {msg.order_id}")
-
+    def _orders_cb(self, msg: OrderMsg):
+        '''Callback for the topic /ariac/orders
+        Arguments:
+            msg -- Order message
+        '''
+        order = Order(msg)
+        self.order_list.append(order)
 
 def main(args=None):
     rclpy.init(args=args)

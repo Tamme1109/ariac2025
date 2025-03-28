@@ -61,12 +61,6 @@ class CompetitionInterface(Node):
             self._logger.error(traceback.format_exc())
 
 
-
-
-
-
-
-
     def start_competition(self):
         """
         Calls the service to start the competition.
