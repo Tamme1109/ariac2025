@@ -1,28 +1,16 @@
-# Copyright 2016 Open Source Robotics Foundation, Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-import json
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 import re
 import os
-import timer
-
+import time
+from cv_bridge import CvBridge, CvBridgeError
+import cv2
 from sensor_msgs.msg import Image as ImageMsg
 
 from ariac_msgs.msg import (
     AdvancedLogicalCameraImage as AdvancedLogicalCameraImageMsg,
+    BreakBeamStatus as BreakBeamStatusMsg,
 )
 
 class DataCollector(Node):
@@ -31,49 +19,49 @@ class DataCollector(Node):
         self.info_subscription = self.create_subscription(
             AdvancedLogicalCameraImageMsg,
             "/ariac/sensors/my_other_camera/image",
-            self._my_other_camera_cb,
-            qos_profile_sensor_data  
+            self._advanced_logical_camera_cb,
+            qos_profile_sensor_data
         )
-        self.info_subscription  # prevent unused variable warning
-        
+               
         self.image_RGB_subscription = self.create_subscription(
             ImageMsg,
             "/ariac/sensors/my_camera/rgb_image",
-            self._my_camera_cb,
+            self._rgb_camera_cb,
             qos_profile_sensor_data,
             # callback group,
         )
-        self.image_RGB_subscription  # prevent unused variable warning
+        # Subscriber to the breakbeam status topic
+        self._breakbeam_sub = self.create_subscription(
+            BreakBeamStatusMsg,
+            '/ariac/sensors/my_breakbeam/status',
+            self._breakbeam_cb,
+            qos_profile_sensor_data
+        )
+        
+        self.canSave = True
+        # cv_bridge interface
+        self._bridge = CvBridge()
+        self.cv_image = None
         
         self.msg = ["","",""] #just something to save the message in
+        self.numberOfPartsSaved = 0
         
         #for saving the information in json files
-        self.numberOfImagesSaved = 0
         self.script_dir = os.path.dirname(__file__) #bbsolute dir the script is in
-        self.rel_path = f"images\image_{self.numberOfImagesSaved}.png"
-        self.abs_file_path = os.path.join(self.script_dir,self.rel_path)
+        self.rel_path = f"images\{self.get_one_msg(0)}.png"
+        self.abs_file_path = os.path.join(self.script_dir,self.rel_path)            
         
-        
-    
-    def _my_other_camera_cb(self, msg : AdvancedLogicalCameraImageMsg):
+    #---Advanced Logical camera---#
+    def _advanced_logical_camera_cb(self, msg : AdvancedLogicalCameraImageMsg):
         self.part_poses = msg.part_poses 
         self.sensor_pose = msg.sensor_pose
-        
         ###cleaning up the messages
-        j = 0
+        #j = 0
         for index in range(len(self.part_poses)): #loop trhoug all the parts poses and add them to the current list self.msg
             self.set_msg(index, {f"part_nr:{self.numberOfPartsSaved}": self.cleanUpPartMsg(self.part_poses[index])}) #clean up the strings so tey are easier to read before saving it in a dictionary
-            j = index
+            #j = index
             self.numberOfPartsSaved += 1
-        #self.msg[j+1] = self.set_msg((j+1), self.cleanUpString(str(self.sensor_pose))) #add the sensor position at the end
-        
-        ###save the messages in a json file
-        for item in self.get_msg():
-            self.save_msg_to_json(item)
-            
-        #message = self.get_msg()
-        #self.get_logger().info('part poses: "%s",\n "%s"\n sensor pose: "%s"\n' % (message[0], message[1], message[2])) 
-        
+        #self.msg[j+1] = self.set_msg((j+1), self.cleanUpString(str(self.sensor_pose))) #add the sensor position at the end   
         
     def set_msg(self,index, msg):#strings are mutable and I don't want trouble
         try:
@@ -101,27 +89,46 @@ class DataCollector(Node):
         s = ""
         for val in vals:
             s += f"_{val}"
-        return s
-          
+        return s      
         
     #create a new filepath for the next item we want to save
     def updateSaveFilePath(self):
-        self.numberOfPartsSaved += 1
-        self.script_dir = os.path.dirname(__file__) #bbsolute dir the script is in
-        self.rel_path = f"savedInfo\savedsaved_part_{self.numberOfPartsSaved}.json"
+        self.script_dir = os.path.dirname(__file__) #absolute dir the script is in
+        self.rel_path = f"images\{self.get_one_msg(0)}.png"
         self.abs_file_path = os.path.join(self.script_dir,self.rel_path)
+
+    #---RGB Camera---#
+    def _rgb_camera_cb(self, msg: ImageMsg):
+        try:
+            self.cv_image = self._bridge.imgmsg_to_cv2(msg, "bgr8")
+        except CvBridgeError as e:
+            print(e)  
         
+        #show the image in the cv2 image window
+        #cv2.imshow("Image window", cv_image)
+        #cv2.waitKey(3)
+        #self.samveImage(cv_image)
+        
+    def savePart(self, rgbImage):
+        cv2.imwrite(self.abs_file_path, rgbImage)
+        self.updateSaveFilePath()
+        self.get_logger().info('saved')
     
-    
+    #---Break Beam---#
+    def _breakbeam_cb(self, msg):
+        data = str(msg)
+        #self.get_logger().info(f'detected something: {data[-5:-1]}')
+        if data[-5:-1] == 'True' and self.canSave:
+            self.get_logger().info('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa')
+            self.canSave = False #make sure to only save one picture of each part
+            self.savePart(self.cv_image)
+        elif data[-6:-1] == 'False':
+            self.canSave = True
 
 def main(args=None):
-
     rclpy.init(args=args)
-
     data_collector = DataCollector()
-
     rclpy.spin(data_collector)
-    
     data_collector.destroy_node()
     rclpy.shutdown()
 
