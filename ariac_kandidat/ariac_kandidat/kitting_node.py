@@ -2,16 +2,16 @@
 
 import rclpy
 from rclpy.node import Node
-from ariac_msgs.msg import Order
-from ariac_kandidat.orders import Order as OrderMsg, KittingTask
+from ariac_msgs.msg import Order as OrderMsg
+from ariac_kandidat.orders import Order, KittingTask
 
 class KittingNode(Node):
-    order_list: List[KittingTask]
+    kitting_list: List[KittingTask]
     def __init__(self):
-        super().__init__('ccs_node')
+        super().__init__('kitting_node')
 
         self.subscription = self.create_subscription(
-            Order,  # message type (Order from ariac_msgs)
+            OrderMsg,  # message type (Order from ariac_msgs)
             '/ariac/orders',  # topic
             self.orders_heard,  # Callback function when a new message is received
             10  # 10 is the queue size
@@ -23,6 +23,7 @@ class KittingNode(Node):
             msg -- Order message
         '''
         order = Order(msg)
-        self.order_list.append(order)
+        if order.order_task == 0:
+            self.kitting_list.append(order)
 
 

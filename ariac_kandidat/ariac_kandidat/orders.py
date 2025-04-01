@@ -8,6 +8,34 @@ from ariac_msgs.msg import (
     Order as OrderMsg
 )
 
+
+class KittingPart:
+    '''
+    Class to store information about a KittingPartMsg.
+    '''
+    _quadrant: int
+    _part: PartMsg
+
+    @property
+    def quadrant(self) -> int:
+        '''
+        Returns the quadrant of the part.
+
+        Returns:
+            int: The quadrant of the part.
+        '''
+        return self._quadrant
+
+    @property
+    def part(self) -> PartMsg:
+        '''
+        Returns the type of the part.
+
+        Returns:
+            PartMsg: The type of the part.
+        '''
+        return self._part
+
 class KittingTask:
     '''
     Class to store information about a KittingTaskMsg.
@@ -56,7 +84,8 @@ class KittingTask:
             List[KittingPart]: The list of parts.
         '''
         return self.parts
-    
+
+
 class Order:
     ''' 
     Class to store one order message from the topic /ariac/orders.
@@ -72,12 +101,12 @@ class Order:
                                           msg.kitting_task.tray_id,
                                           msg.kitting_task.destination,
                                           msg.kitting_task.parts)
-
+        else:
+            self.order_task = None
+        '''
         elif self.order_type == OrderMsg.ASSEMBLY:
             self.order_task = AssemblyTask(msg.assembly_task.agv_numbers,
                                            msg.assembly_task.station,
                                            msg.assembly_task.parts)
         elif self.order_type == OrderMsg.COMBINED:
-            self.order_task = CombinedTask(msg.combined_task.station, msg.combined_task.parts)
-        else:
-            self.order_task = None
+            self.order_task = CombinedTask(msg.combined_task.station, msg.combined_task.parts)'''    
