@@ -53,6 +53,47 @@ class AAAAA:
         data = dict(zip(keys, vals))
         return data
     
+    def generate_image_filename(self, part_data: dict, index=None):
+        """
+        Generates a descriptive image filename using part type and color.
+        
+        Parameters:
+        - part_data (dict): Dictionary with keys like "type" and "color" (parsed from message)
+        - index (int, optional): Image number to append (for uniqueness and ordering)
+        
+        Returns:
+        - str: A filename like 'sensor_red_001.png'
+        """
+
+        # These lists act as ID → name lookup tables
+        types_of_parts = ['pump', 'battery', 'regulator', 'sensor']  # type_id 0–3
+        colours = ['blue', 'red', 'green', 'orange', 'purple']       # color_id 0–4
+
+        # Extract type and color IDs
+        type_id = part_data["type"]
+        color_id = part_data["color"]
+
+        # Convert to readable strings (fallback to ID if unknown)
+        try:
+            type_name = types_of_parts[type_id]
+        except IndexError:
+            type_name = f"type{type_id}"
+
+        try:
+            color_name = colours[color_id]
+        except IndexError:
+            color_name = f"color{color_id}"
+
+        # Build the filename with zero-padded index
+        if index is not None:
+            filename = f"{type_name}_{color_name}_{index:03d}.png"
+        else:
+            filename = f"{type_name}_{color_name}.png"
+
+        return filename
+
+
+    
     def cleanUpSensorMsg(self, stringMsg):
         values = []
         text = ((str(str(stringMsg).replace("=", "= ")).replace("'", " ' ")).replace(")", " )")).replace(",", " , ") #make the numbers "stand" alone
@@ -106,6 +147,44 @@ def main(args=None):
     """ for i in range(len(a.msg)):
         a.set_msg(i, a.cleanUpString(a.get_msg(i)))"""
         
+
+
+#for i, msg in enumerate(a.get_msg()):
+ 
+
+#   cleaned = a.cleanUpPartMsg(msg)
+ #   a.set_msg(i, cleaned)
+
+  #  filename = a.generate_image_filename(cleaned, index=i)
+   # print(f"Image would be saved as: {filename}")
+
+    # Should be able to use for testing i guess
+
+
+""" 
+def main(args=None):
+    \"\"\"
+    Test the part parsing and filename generation without using ROS.
+    This just prints filenames based on the example messages inside AAAAA.
+    \"\"\"
+    a = AAAAA()  # Create an instance of your parser
+
+    # Loop over all the example part messages
+    for i, msg in enumerate(a.get_msg()):
+        # Parse the string into usable part data
+        cleaned = a.cleanUpPartMsg(msg)
+
+        # Save the cleaned data back into the message list (optional)
+        a.set_msg(i, cleaned)
+
+        # Generate a smart filename like 'battery_red_001.png'
+        filename = a.generate_image_filename(cleaned, index=i)
+
+        # Print out the result for checking
+        print(f"Image would be saved as: {filename}")
+"""
+
+
     i = 0
     for msg in a.get_msg():
         cleaned = a.cleanUpPartMsg(msg)
