@@ -82,7 +82,7 @@ class MinimalSubscriber(Node):
     def updateSaveFilePath(self):
         self.numberOfImagesSaved += 1
         self.script_dir = os.path.dirname(__file__) #bbsolute dir the script is in
-        self.rel_path = f"images\image_{self.numberOfImagesSaved}.jpg"
+        self.rel_path = f"images\image_{self.numberOfImagesSaved}.png"
         self.abs_file_path = os.path.join(self.script_dir,self.rel_path)
         
    
