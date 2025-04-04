@@ -21,9 +21,12 @@ setup(
     entry_points={
         'console_scripts': [
             'listener = sub.sensor_listener:main',
+
             'rgbListener = sub.rgb_listener:main', 
             'collectData = sub.rgb_advanced_listener:main',      
             'break = sub.breakbeam_listener:main',        
+            'rgbListener = sub.rgb_listener:main',             
+
             
         ],
     },
