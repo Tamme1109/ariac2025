@@ -5,7 +5,7 @@ from cv_bridge import CvBridge  # Tool to convert ROS <-> OpenCV images
 import cv2  # OpenCV for image saving
 import os  # To handle file paths
 
-from your_module_containing_aaaaa import AAAAA  # 👈 Change this to the actual filename/module where your AAAAA class is
+from CleanedUpMessageAndNaming import AAAAA  # 👈 filename where AAAAA class is
 
 class ImageSaverNode(Node):
     def __init__(self):
