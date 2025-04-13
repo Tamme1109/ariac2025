@@ -3,7 +3,7 @@ from predicates.state import State
 from predicates import guards, actions
 from model.operation import Transition
 from model.model import the_model
-from runner import ctrl_random
+
 
 if __name__ == '__main__':
     # run in terminal when venv is sourced: python3 -m model
@@ -18,7 +18,6 @@ if __name__ == '__main__':
             print(f"Operation {o.name}")
             print(f"  Pre: {o.precondition}")
             print(f"  Post: {o.postcondition}")
-            print(f"  Effect: {o.effects}")
             print("")
         xs = [name for name, o in model.operations.items() if o.eval(model.initial_state)]
         print(f"enabled ops: {xs}")
@@ -26,8 +25,6 @@ if __name__ == '__main__':
         ## Print out more to try out your model. For example, try to do next on some enabled operations.
 
         # this will start the random ctrl that will run your operations in the simulator
-        from runner import random_ctrl
-        ctrl_random.run()
         
 
     except ParseError as e:

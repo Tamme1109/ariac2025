@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'py_srvcli'
+package_name = 'operation_runner'
 
 setup(
     name=package_name,
@@ -13,20 +13,15 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='louis',
-    maintainer_email='louis@todo.todo',
-    description='TODO: Package description',
+    maintainer='Louise Hasslöf',
+    maintainer_email='hasslofl@chalmers.se',
+    description='package contains a simple operation runner with operations',
     license='Apache-2.0',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'service = py_srvcli.server:main',
-            'client = py_srvcli.client:main',
-            'client2 = py_srvcli.client:main',
-            'doorservice = py_srvcli.doorService:main',
-            'doorClient = py_srvcli.doorClient:main',
-            'json_service = py_srvcli.server_json:main',
-            'json_client = py_srvcli.client_json:main',
+            'ops_run = operation_runner.control:main',
+            'action_cli = operation_runner.client_used_during_development:main',
             
         ],
     },
