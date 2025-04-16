@@ -18,12 +18,10 @@ def main(args=None):
     # Spawn all necessary nodes
     agv_control = AGVController()
     interface = CompetitionInterface()
-    floor_robot = FloorRobot()
 
     executor = MultiThreadedExecutor()
     executor.add_node(interface)
     executor.add_node(agv_control)
-    executor.add_node(floor_robot)
 
     spin_thread = threading.Thread(target=executor.spin)
     spin_thread.start()
@@ -31,10 +29,9 @@ def main(args=None):
     interface.start_competition()
 
     agv_control.lock_agv_tray(1)
-    agv_control.move_agv(1)
+    agv_control.move_agv(1,1)
 
-    floor_robot.move_home()
-
+    interface.move_floor_robot_home()
     try:
         while rclpy.ok():
             if interface.get_competition_state() == CompetitionState.ORDER_ANNOUNCEMENTS_DONE:
