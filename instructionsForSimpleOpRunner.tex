@@ -1,0 +1,7 @@
+The operation runner is in a package called operation_runner and you find it in src/operation_runner.
+Add the operation_runner package to your ariac_ws where you have your other packages.
+As can be seen in the setup.py file, there are two scripts that can be ran: 
+  'ops_run = operation_runner.control:main',
+  'action_cli = operation_runner.client_used_during_development:main',
+
+run the two nodes and they will be able to comunicate with each other (without any involvement of anything else).
