@@ -28,7 +28,7 @@ def theModel() -> Model:
                 
         AGV1_allowedToMoveLocation = True,
         AGV1_pos = 'Pos1',
-        moveAVG1 = False,
+        moveAGV1 = 'init',
         AGV1_moveto = -1,
     )
     
@@ -42,7 +42,7 @@ def theModel() -> Model:
                     a(f"!AGV1_allowedToMoveLocation, AGV1_moveto <- {i}")
                 ),
                 postcondition=Transition("post",
-                    g(f"AGV1_pos == {place}"), 
+                    g(f"AGV1_pos == {i}"), 
                     a(f"AGV1_allowedToMoveLocation, AGV1_moveto <- {-1}")#AGVPose <- warehouse
                 )         
             )

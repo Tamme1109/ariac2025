@@ -259,7 +259,7 @@ def next():
     res = Next(key, xs)
     return res
 
-
+ 
 
 def actions() -> List[Action]:
     return sepEndBy1(next ^ inc ^ dec ^ assign ^ assign_value ^ set_to_false ^ set_to_true, delimiter) # type: ignore
