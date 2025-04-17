@@ -27,7 +27,7 @@ def theModel() -> Model:
         #add all the state variables you want here, for simplistic reasons I'll only add a few.
                 
         AGV1_allowedToMoveLocation = True,
-        AGV1_pos = 'Pos1',
+        AGV1_pos = '1',
         moveAGV1 = 'init',
         AGV1_moveto = -1,
     )
@@ -38,7 +38,7 @@ def theModel() -> Model:
             ops[f"moveAGV1To{place}"] = Operation(
                 name = f"moveAGV1To{place}", #the name of the operation
                 precondition=Transition("pre",
-                    g(f"AGV1_allowedToMoveLocation && AGV1_pos != {place}"),                                          
+                    g(f"AGV1_allowedToMoveLocation && AGV1_pos != {i}"),                                          
                     a(f"!AGV1_allowedToMoveLocation, AGV1_moveto <- {i}")
                 ),
                 postcondition=Transition("post",

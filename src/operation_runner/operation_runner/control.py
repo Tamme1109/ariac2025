@@ -93,7 +93,6 @@ class Runner(Node):
         
         if self.sendAGVreq == True:
             #send an action goal
-            print('a')
             self.req = self.sendRequest() 
             self.sendAGVreq = False 
          
@@ -129,8 +128,13 @@ class Runner(Node):
         try:
             result = future.result().result #[agvnr, pos]
             self.get_logger().info('Result: {0}'.format(result.ok))
+            print(result.ok[0], result.ok[1])
             self.upd_state(f'moveAGV{result.ok[0]}', 'init')
             self.upd_state('AGV1_pos', result.ok[1])
+            #right now we want the AGV to move between the two positions, meaning that if we're at 1 we want to go to 0 etc
+            if self.state.get('AGV1_moveto') == 1:
+                self.upd_state('AGV1_moveto', 0) 
+                
             self.req = None
             self._send_goal_future = None
             self._get_result_future = None
@@ -146,7 +150,6 @@ def simple_operation_runner(self, state: State, model: Model) -> State:
                 next_state = op.start(state)#if we can pass the guard we start the operation and update the state with the new changes
                 newStateAdded = True
                 self.sendAGVreq = True
-                print('rq')
                 break
             
         for ops in model.operations:#check every running operation and see if they can complete

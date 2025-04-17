@@ -12,8 +12,29 @@ sys.path.append( 'ariac_ws/src/action_interfaces/action')
 import AGVAction"""
 
 from actions_operation_runner.action import AGVAction
+from ariac_msgs.msg import (
+    CompetitionState as CompetitionStateMsg,
+    BreakBeamStatus as BreakBeamStatusMsg,
+    AdvancedLogicalCameraImage as AdvancedLogicalCameraImageMsg,
+    Part as PartMsg,
+    PartPose as PartPoseMsg,
+    Order as OrderMsg,
+    AssemblyPart as AssemblyPartMsg,
+    AGVStatus as AGVStatusMsg,
+    AssemblyTask as AssemblyTaskMsg,
+    AssemblyState as AssemblyStateMsg,
+    CombinedTask as CombinedTaskMsg,
+    VacuumGripperState,
+)
 
 class AGVController(Node):
+    _destinations = {
+        AGVStatusMsg.KITTING: 'kitting station',
+        AGVStatusMsg.ASSEMBLY_FRONT: 'front assembly station',
+        AGVStatusMsg.ASSEMBLY_BACK: 'back assembly station',
+        AGVStatusMsg.WAREHOUSE: 'warehouse',
+        AGVStatusMsg.UNKNOWN: 'unknown',
+    }
     def __init__(self):
         super().__init__('agv_controller')     
         """#publisher to publish changes to topic
@@ -30,6 +51,37 @@ class AGVController(Node):
         self.agv_service = ActionServer(self, AGVAction, 'agvaction', self.agv_callback)
         
         self.state = {'AGV1_allowedToMoveLocation': True, 'AGV1_pos': 'Pos1', 'moveAVG1': False, 'AGV1_moveto':-1,} #TODO change later (make it like read the inital state or smt)
+        
+         # AGV status subs
+        self._agv_locations = {i+1:-1 for i in range(4)}
+        
+        self.agv1_status_sub = self.create_subscription(AGVStatusMsg,
+                                                        "/ariac/agv1_status",
+                                                        self._agv1_status_cb,
+                                                        10)
+        self.agv2_status_sub = self.create_subscription(AGVStatusMsg,
+                                                        "/ariac/agv2_status",
+                                                        self._agv2_status_cb,
+                                                        10)
+        self.agv3_status_sub = self.create_subscription(AGVStatusMsg,
+                                                        "/ariac/agv3_status",
+                                                        self._agv3_status_cb,
+                                                        10)
+        self.agv4_status_sub = self.create_subscription(AGVStatusMsg,
+                                                        "/ariac/agv4_status",
+                                                        self._agv4_status_cb,
+                                                        10)
+    def _agv1_status_cb(self, msg : AGVStatusMsg):
+        self._agv_locations[1] = msg.location
+    
+    def _agv2_status_cb(self, msg : AGVStatusMsg):
+        self._agv_locations[2] = msg.location
+    
+    def _agv3_status_cb(self, msg : AGVStatusMsg):
+        self._agv_locations[3] = msg.location
+    
+    def _agv4_status_cb(self, msg : AGVStatusMsg):
+        self._agv_locations[4] = msg.location
 
     def agv_callback(self, goal_handle): 
         print('agv_action-callback')
@@ -70,7 +122,7 @@ class AGVController(Node):
         else:
             self.get_logger().error(f" Failed to lock tray on AGV {agv_id}.")
 
-    async def move_agv(self,agv_id: int, destination_id: int):
+    def move_agv(self,agv_id: int, destination_id: int):
         """Moves the AGV to a predefined destination by ID (e.g., 1 = station_1)."""
         move_agv_client = self.create_client(MoveAGV, f'/ariac/move_agv{agv_id}')
 
@@ -83,14 +135,29 @@ class AGVController(Node):
         future = move_agv_client.call_async(request)
         #rclpy.spin_until_future_complete(self, future)
         
-        res = await future
+        """res = await future
         print('wait done')
 
         if res.result().success:
             self.get_logger().info(f" AGV moved to location ID {destination_id}.")
         else:
             self.get_logger().error(" Failed to move AGV.")
+        """
+        # Wait for the server to respond.
+        while not future.done():
+            pass
 
+        timeout = 22
+        start = time.time()
+
+        while (time.time() - start < timeout):
+            if (self._agv_locations[agv_id] == destination_id):
+                self.get_logger().info(f'Moved AGV{agv_id} to {self._destinations[destination_id]}')
+                return True
+
+        self.get_logger().info(f"Unable to move AGV {agv_id} to {self._destinations[destination_id]}")
+        return False; 
+    
     def unlock_agv_tray(self, agv_id: int):
         """Locks the tray of the specified AGV (1 or 2)."""
         unlock_agv_tray_client = self.create_client(Trigger, f'/ariac/agv{agv_id}_lock_tray')
